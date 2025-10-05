@@ -22,14 +22,9 @@ MAX_DATE = daily["Date"].max()
 VALID_CATEGORIES = daily["Product Category"].unique().tolist()
 
 @app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "message": "Retail Forecast API active",
-        "endpoints": {
-            "GET /api/info": "Get valid date range and categories",
-            "POST /predict": "Get demand prediction"
-        }
-    })
+def serve_frontend():
+    """Serve the frontend HTML"""
+    return send_from_directory('.', 'index.html')
 
 @app.route("/api/info", methods=["GET"])
 def get_info():
