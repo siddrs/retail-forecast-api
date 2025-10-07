@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, render_template, url_for, send_from_directory
 import joblib
 import pandas as pd
 from flask_cors import CORS
@@ -6,7 +6,8 @@ import numpy as np
 from feature_builder import build_features
 import os
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
 # load model and features
@@ -23,8 +24,7 @@ VALID_CATEGORIES = daily["Product Category"].unique().tolist()
 
 @app.route("/", methods=["GET"])
 def serve_frontend():
-    """Serve the frontend HTML"""
-    return send_from_directory('.', 'index.html')
+    return render_template("index.html")
 
 @app.route("/api/info", methods=["GET"])
 def get_info():

@@ -23,7 +23,8 @@
 <body>
   <div class="Header">
     <div class="Circle">
-      <img src="./finalicon.png" width="70" height="70" alt="icon"/>
+      <img src="{{ url_for('static', filename='finalicon.png') }}" width="70" height="70" alt="icon"/>
+      <!-- <img src="./finalicon.png" width="70" height="70" alt="icon"/> -->
     </div>
     <h1>Inventory Prediction</h1>
   </div>
@@ -45,6 +46,9 @@
       </label>
     </div>
 
+    <p style="font-size:0.9rem;color:#444;margin:8px 0 6px;">
+      <strong>Note:</strong> Please select a date between <b>1 Jan 2023</b> and <b>1 Jan 2024</b>.
+    </p>
     <button id="predictBtn">Get Prediction</button>
 
     <div id="outWrapper" class="out" aria-live="polite"></div>
