@@ -46,12 +46,37 @@
       </label>
     </div>
 
-    <p style="font-size:0.9rem;color:#444;margin:8px 0 6px;">
-      <strong>Note:</strong> Please select a date between <b>1 Jan 2023</b> and <b>1 Jan 2024</b>.
-    </p>
+  <div style="
+      background:#eef2ff;
+      border-left:5px solid #6366f1;
+      border-radius:8px;
+      padding:14px 16px;
+      margin:14px 0;
+      color:#1e1b4b;
+      font-size:0.92rem;
+      line-height:1.5;
+      box-shadow:0 2px 6px rgba(0,0,0,0.05);
+      text-align: center;
+      ">
+      <p style="margin-bottom:6px;font-weight:600;">
+        <b>NOTE</b>
+      </p>
+      <p style="margin-bottom:6px;">
+        Please select a date between <b>1 Jan 2023</b> and <b>1 Jan 2024</b>.
+      </p>
+      <p style="margin:0;">
+        The prediction window (<b>1 Jan 2023 – 1 Jan 2024</b>) is fixed because the training dataset
+        contains sales data only for that period.
+        The <b>RandomForest</b> model learns temporal patterns (daily, weekly, monthly)
+        and depends on historical sales to compute lag and rolling statistics.
+        Predicting outside this range would require newer data that were not part of training.
+      </p>
+  </div>
+    
     <button id="predictBtn">Get Prediction</button>
 
     <div id="outWrapper" class="out" aria-live="polite"></div>
+    
   </div>
 
   <script>
