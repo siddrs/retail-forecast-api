@@ -76,6 +76,12 @@
     <button id="predictBtn">Get Prediction</button>
 
     <div id="outWrapper" class="out" aria-live="polite"></div>
+
+    <div class="graph-box">
+      <img src="{{ url_for('static', filename='graph.png') }}" 
+         alt="Prediction v/s Actual graph"
+        style="max-width:100%;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-top:1rem;">
+    </div>
     
   </div>
 
