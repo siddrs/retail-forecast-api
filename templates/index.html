@@ -18,6 +18,56 @@
     .ok{ background:#ecfdf5; border:1px solid #bbf7d0; color:#065f46; padding:12px; border-radius:8px; }
     .err{ background:#fff1f2; border:1px solid #fecaca; color:#991b1b; padding:12px; border-radius:8px; }
     .meme{ margin-top:1rem; padding:1rem; border-radius:.5rem; background:#ded6ee; color:purple; font-size:1rem; }
+    .pred-card{
+      max-width:780px;
+      margin:18px auto;
+      padding:18px;
+      border-radius:12px;
+      background:#e9fff3;
+      border:1px solid #c7edd8;
+      box-shadow:0 6px 18px #1450320a;
+      font-family:system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;
+      color:#064b37;
+    }
+    .pred-title{
+      text-align:center;
+      font-weight:700;
+      font-size:18px;
+      margin-bottom:12px;
+      color:#0b5c46;
+    }
+    .pred-list{
+      display:grid;
+      gap:6px;
+      padding:6px 2px;
+      max-height:280px;
+      overflow:auto;
+    }
+    .pred-row{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      align-items:center;
+      padding:8px 12px;
+      border-radius:8px;
+      background:linear-gradient(90deg, #ffffff99, #ffffff66);
+    }
+    .pred-row:nth-child(even){ opacity:0.98; }
+    .pred-row:hover{ transform:translateY(-1px); box-shadow:0 6px 18px #064b380a; }
+    .pred-date{ text-align:left; font-weight:600; }
+    .pred-value{ text-align:right; min-width:72px; }
+    .pred-total{
+      margin-top:10px;
+      display:flex;
+      justify-content:space-between;
+      padding:10px 12px;
+      font-weight:800;
+      border-radius:8px;
+      background:#f2fff7;
+      color:#043d30;
+    }
+    .small-muted{ font-size:12px; color:#186b50aa; font-weight:600; }
+  
+
   </style>
 </head>
 <body>
@@ -56,7 +106,7 @@
 
   <div style="
       background:#eef2ff;
-      border-left:5px solid #6366f1;
+      border:2px solid #6366f1;
       border-radius:8px;
       padding:14px 16px;
       margin:14px 0;
@@ -144,46 +194,67 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        const json = await resp.json().catch(() => ({}));
+
+        const body = await resp.json().catch(() => ({}));
 
         if (!resp.ok) {
-          const msg = (json && (json.error || json.message)) || `Server error ${resp.status}`;
+          const msg = (body && (body.error || body.message)) || `Server error ${resp.status}`;
           if (/out of range/i.test(msg)) {
             show('Date out of range.', 'err');
           } else {
             show(msg, 'err');
           }
-        } else {
-          const body = json || {};
-          if (body.predictions && Array.isArray(body.predictions)) {
-            // render list
-            out.innerHTML = '';
-            const container = document.createElement('div');
-            container.className = 'ok';
-            const title = document.createElement('div');
-            title.style.fontWeight = '600';
-            title.style.marginBottom = '6px';
-            title.textContent = `Predictions for ${body.product_category} from ${body.start_date} (${body.n_days} day(s))`;
-            container.appendChild(title);
+          return;
+        }
+        // success branch
+        if (body.predictions && Array.isArray(body.predictions)) {
+          out.innerHTML = '';
+          const container = document.createElement('div');
+          container.className = 'pred-card';
 
-            const list = document.createElement('div');
-            list.style.textAlign = 'left';
-            list.style.maxHeight = '260px';
-            list.style.overflow = 'auto';
-            list.style.marginTop = '6px';
-            body.predictions.forEach(p => {
-              const row = document.createElement('div');
-              row.textContent = `${p.date}: ${p.predicted_quantity}`;
-              row.style.padding = '4px 0';
-              list.appendChild(row);
-            });
-            container.appendChild(list);
-            out.appendChild(container);
-          } else if (body.predicted_quantity !== undefined) {
-            show(`Predicted quantity: ${body.predicted_quantity}`, 'ok');
-          } else {
-            show('Unexpected response from server: ' + JSON.stringify(body), 'err');
-          }
+          const title = document.createElement('div');
+          title.className = 'pred-title';
+          title.textContent = `Predictions for ${body.product_category} from ${body.start_date} (${body.n_days} day(s))`;
+          container.appendChild(title);
+
+          const list = document.createElement('div');
+          list.className = 'pred-list';
+          let total = 0;
+          body.predictions.forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'pred-row';
+
+            const d = document.createElement('div');
+            d.className = 'pred-date';
+            d.textContent = p.date;
+
+            const v = document.createElement('div');
+            v.className = 'pred-value';
+            const val = Number(p.predicted_quantity);
+            total += isFinite(val) ? val : 0;
+            v.textContent = Number.isInteger(val) ? val.toString() : val.toFixed(2);
+
+            row.appendChild(d);
+            row.appendChild(v);
+            list.appendChild(row);
+          });
+          container.appendChild(list);
+
+          const totalRow = document.createElement('div');
+          totalRow.className = 'pred-total';
+          const left = document.createElement('div');
+          left.textContent = 'Total';
+          left.className = 'small-muted';
+          const right = document.createElement('div');
+          right.textContent = Number.isInteger(total) ? total.toString() : total.toFixed(2);
+          totalRow.appendChild(left);
+          totalRow.appendChild(right);
+          container.appendChild(totalRow);
+          out.appendChild(container);
+        } else if (body.predicted_quantity !== undefined) {
+          show(`Predicted quantity: ${body.predicted_quantity}`, 'ok');
+        } else {
+          show('Unexpected response from server: ' + JSON.stringify(body), 'err');
         }
       } catch (e) {
         show('Network error: ' + (e.message || e), 'err');
@@ -191,6 +262,7 @@
         btn.disabled = false;
       }
     });
+
 
   </script>
 </body>
