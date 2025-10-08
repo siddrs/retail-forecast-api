@@ -2,9 +2,11 @@
 This project implements a machine learning–based demand forecasting system that predicts daily product demand using historical retail sales data.
 
 # Web App Access
-The deployed application can be found at this URL: http://retail-forecast-env.eba-apyigjrc.ap-south-1.elasticbeanstalk.com/
-<br>
-(Note: The app uses HTTP and not HTTPS, so the website might not be accessible on some mobile browsers)
+The deployed application can be found at these URLs: 
+- AWS: [retail-forecast-env.eba-apyigjrc.ap-south-1.elasticbeanstalk.com](http://retail-forecast-env.eba-apyigjrc.ap-south-1.elasticbeanstalk.com/)
+- Railway: [retail-forecast-api-production.up.railway.app](https://retail-forecast-api-production.up.railway.app/)
+
+(Note: The AWS app uses HTTP and not HTTPS, so the website might not be accessible on some mobile browsers)
 
 # Methodology:
 - Trains a Random Forest Regressor on daily sales data.
