@@ -41,8 +41,16 @@
       </label>
 
       <label>Date
-        <!-- remove hardcoded min/max so backend decides validity -->
         <input id="date" name="date" type="date" />
+      </label>
+
+      <label style="display:flex;flex-direction:column;">
+        Forecast type
+        <div style="display:flex;gap:.5rem;align-items:center;margin-top:.3rem;">
+          <label><input type="radio" name="mode" value="single" checked /> Single day</label>
+          <label><input type="radio" name="mode" value="multi" /> Multi-day</label>
+          <input id="nDays" type="number" min="2" max="365" placeholder="days" style="width:6rem;padding:.4rem .6rem;border-radius:.4rem;background:#fff;border:1px solid #ccc;margin-left:.5rem;" />
+        </div>
       </label>
     </div>
 
@@ -103,7 +111,6 @@
     }
 
     async function requestPrediction(category, date) {
-      // POST JSON { product_category, date } as your Flask backend expects
       const payload = { product_category: category, date: date };
       const resp = await fetch(predictEndpoint, {
         method: 'POST',
@@ -117,32 +124,64 @@
     btn.addEventListener('click', async () => {
       const category = categoryEl.value.trim();
       const date = dateEl.value;
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const nDaysEl = document.getElementById('nDays');
+      const nDays = mode === 'multi' ? parseInt(nDaysEl.value || "0", 10) : 1;
 
       if (!category) { show('Select a category.', 'err'); return; }
       if (!date) { show('Select a date.', 'err'); return; }
+      if (mode === 'multi' && (!nDays || nDays < 2)) { show('Enter N days (>=2) for multi-day.', 'err'); return; }
 
       btn.disabled = true;
       show('Requesting prediction...');
 
       try {
-        const res = await requestPrediction(category, date);
+        const payload = { product_category: category, date: date };
+        if (nDays && nDays > 1) payload.n_days = nDays;
 
-        if (!res.ok) {
-          // Prefer server-provided error message. Many Flask APIs return { "error": "..." }.
-          const msg = (res.body && (res.body.error || res.body.message)) || `Server error ${res.status}`;
-          // Normalize common phrase.
+        const resp = await fetch(predictEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = await resp.json().catch(() => ({}));
+
+        if (!resp.ok) {
+          const msg = (json && (json.error || json.message)) || `Server error ${resp.status}`;
           if (/out of range/i.test(msg)) {
             show('Date out of range.', 'err');
           } else {
             show(msg, 'err');
           }
         } else {
-          // Success path. Expecting { predicted_quantity: <number> }.
-          const body = res.body || {};
-          if (body.predicted_quantity !== undefined) {
+          const body = json || {};
+          if (body.predictions && Array.isArray(body.predictions)) {
+            // render list
+            out.innerHTML = '';
+            const container = document.createElement('div');
+            container.className = 'ok';
+            const title = document.createElement('div');
+            title.style.fontWeight = '600';
+            title.style.marginBottom = '6px';
+            title.textContent = `Predictions for ${body.product_category} from ${body.start_date} (${body.n_days} day(s))`;
+            container.appendChild(title);
+
+            const list = document.createElement('div');
+            list.style.textAlign = 'left';
+            list.style.maxHeight = '260px';
+            list.style.overflow = 'auto';
+            list.style.marginTop = '6px';
+            body.predictions.forEach(p => {
+              const row = document.createElement('div');
+              row.textContent = `${p.date}: ${p.predicted_quantity}`;
+              row.style.padding = '4px 0';
+              list.appendChild(row);
+            });
+            container.appendChild(list);
+            out.appendChild(container);
+          } else if (body.predicted_quantity !== undefined) {
             show(`Predicted quantity: ${body.predicted_quantity}`, 'ok');
           } else {
-            // If backend returns the valid range instead, report that.
             show('Unexpected response from server: ' + JSON.stringify(body), 'err');
           }
         }
@@ -152,6 +191,7 @@
         btn.disabled = false;
       }
     });
+
   </script>
 </body>
 </html>
